@@ -1,0 +1,85 @@
+<style type="text/css">
+  @import url("my.css");
+</style>
+
+<!-- <link rel="stylesheet"
+      href="http://yui.yahooapis.com/pure/0.3.0/base-min.css"> -->
+
+
+<body>
+
+<h2>AUSTIN POOL MAP</h2>
+
+<p>by <a href="https://twitter.com/RyanKeisler">@RyanKeisler</a>
+  January 18, 2014</p>
+
+<p>With the launch of small, low-cost imaging satellites from the likes of <a href="http://skybox.com/">SkyBox</a> and <a href="http://www.planet.com/">Planet Labs</a>, the amount of publicly accessible satellite imagery is about to explode.  Unless you're interested in a very specific location, manually analyzing these images is going to be difficult; you need some machine vision to do the heavy lifting for you.</p>
+
+<p>For this weekend hack I decided to look for <em>swimming pools in Austin, TX</em>.  Swimming pools because they're easy, and Austin because it's a city I know well.  Code available <a href="https://www.github.com/rkeisler/sat_img">here</a>.</p>
+
+<h2>the map</h2>
+
+<a target='_blank' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#13/30.2773/-97.7443">CLICK HERE FOR FULL-SCREEN VERSION.</a>
+
+<iframe width='100%' height='500px' frameBorder='0' src='https://a.tiles.mapbox.com/v4/rkeisler.gj60i22i/attribution,zoompan,share.html?access_token=pk.eyJ1IjoicmtlaXNsZXIiLCJhIjoiWjVtV2szMCJ9.p3TZ8fIj43uo23-YjqdQjg'></iframe>
+
+<p><a href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#13/30.2773/-97.7443">CLICK HERE FOR FULL-SCREEN VERSION.</a>
+
+<!-- <p>The full map is available <a href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#13/30.2773/-97.7443">here</a>.  A few comments below, and then the technical details after the break.</p> -->
+
+<h2>comments</h2>
+
+<ul>
+  <li><p><strong>Hey it works</strong> - The "pools" that the algorithm finds are usually real pools.  No bogus pools show up in the big undeveloped areas, like the <a target='_blanck' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#13/30.2623/-97.8068">Barton greenbelt</a>.  Good.</p></li>
+  <li><p><strong>West</strong> - There are way more pools in west Austin than in the other parts of town.  The "west lake hills" neighborhood is the more affluent area of town, so it isn't surprising that there are more pools out there.</p></li>
+  <li><p><strong>Wow</strong> - I was a little surprised at the degree of opulence of some of the homes-with-pools in west Austin: <a target='_blanck' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#20/30.30346/-97.81063">private tennis courts</a>, <a target='_blanck' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#20/30.26226/-97.81236">putting greens</a>, and my personal favorite, one's very own <a target='_blanck' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#20/30.30412/-97.81741">garden labyrinth</a>.</p></li>
+  <li><p><strong>Downtown</strong>  - I wasn't expecting to see very many pools downtown, because, well, you don't see any pools when you're walking around there.  But there are actually quite a few, many <a target='_blanck' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#18/30.26824/-97.75492">hiding on top of high-rise condo buildings</a>.</p></li>
+  <li><p><strong>Not quite right</strong> - The classifier has some interesting failures, like this <a target='_blanck' href=https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#18/30.29047/-97.79686>water-treatment plant</a> or this <a target='_blanck' href="https://a.tiles.mapbox.com/v3/rkeisler.gj60i22i/page.html?secure=1#17/30.21978/-97.67482">covered airport parking</a>.</p></li>
+<!-- An array of perfectly square pools or covered airport parking?</a></p></li> -->
+<!--  <li><p><strong>Practical</strong> - To the professional pool cleaners of Austin - take this map and prosper!</p></li> -->
+  <li><p><strong>Takeaway</strong>  - This was fun.  I was glad to see that some relatively simple machine learning could be used to find objects in satellite imagery.
+
+Feedback welcome through <a href="&#x6D;&#97;&#x69;&#x6C;&#116;&#x6F;:&#114;&#107;&#101;&#105;s&#x6C;&#101;&#x72;&#64;&#103;&#x6D;a&#105;&#108;.&#x63;&#111;&#x6D;">&#114;&#107;&#101;&#105;s&#x6C;&#101;&#x72;&#64;&#103;&#x6D;a&#105;&#108;.&#x63;&#111;&#x6D;</a> or <a href="https://twitter.com/RyanKeisler">@RyanKeisler</a>.
+</p></li></ul>
+<hr />
+
+<h1>Details</h1>
+Code available <a href="https://www.github.com/rkeisler/sat_img">here</a>.
+<h2>image data</h2>
+
+<p>First I defined a big rectangle centered on downtown Austin.  After learning how to convert from latitude/longitude/zoom to the X/Y/Z tiling scheme, I downloaded 66,000 images from <a href="http://www.mapbox.com">Mapbox</a> (=66k <code>urlretrieve</code> calls).  Satellite imagery isn't available in the free Mapbox plan, so I had to cough up $5.  
+<!--Sure, I probably could have found similar data for free, or used imagery from google maps, but this was cheap and easy. -->
+</p>
+
+
+<h2>where are the pools?</h2>
+
+<p>I chose to search for swimming pools because they're really easy to find.  There just aren't a lot of other bus-sized, aquamarine blobs in these images.</p>
+
+<p>The algorithm is pretty simple, and the basic idea was to hand-engineer features that correspond to contiguous chunks of blue pixels.  More specifically,</p>
+
+<ol>
+  <li>Randomly generate 60 colors: 50 shades of blue and 10 shades of non-blue.</li>
+  <li>For each color, and for each image,
+    <ul><li>create a binary image, 1's for pixels that are "close" to this color, 0's otherwise,</li>
+      <li>smooth the binary map,</li>
+      <li>record the maximum and mean of the smoothed map.</li></ul></li>
+  <li>That set of 60 (max, mean)'s are the features we'll train on.  We've reduced the (256x256x3)-dimensional input space to a 120-dimensional feature space.</li>
+  <li>Hand-label a few percent of the images.  This was 30 minutes of "no pool", "pool", ..., "no pool" - not quite as boring as it sounds.</li>
+  <li>Train a classifier on these features.  The classifier outputs a probability that the image contains a pool in it.  I went with the <a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesClassifier.html"><code>ExtraTreesClassifier</code></a> (a random forest variant) from the amazing <a href="http://scikit-learn.org/stable/"><code>scikit-learn</code></a> machine learning package, because it's easy to use and robust to outlying data.</li>
+  <li>Run the classifier on all 66,000 images.</li>
+  <li>Now we can predict the locations of all the pools in Austin.</li>
+  </ol>
+
+<!-- <p>Note that because only ~5% of the images have pools in them, the classifer needs to have better than 20-to-1 rejection for it to be useful.  That target was pretty easy to hit.  I chose to threshold the classifier so that it has ~200-to-1 rejection but still finds the majority of pools.</p> -->
+
+<h2>visualization</h2>
+
+<p>Now that I have a list of (lat, long) for a bunch of pools, I need a way to visualize them.  I wanted to show the locations of the pools on top of the original satellite imagery, and so <a href="https://www.mapbox.com/tilemill/">Mapbox's TileMill</a> was the obvious way to go.  The most time-consuming (but ultimately satisfying) part of this process was making the size and transparency of the markers dependent on the zoom level.  When zoomed out, the cirlces overlap and have the effect of a heatmap.  When zoomed in, the circles are transparent and show the approximate location of the pool.</p>
+
+<a href=http://stanford.edu/~rkeisler/ target='_blank'>stanford.edu/~rkeisler</a><br/>
+<a href="mailto:rkeisler@gmail.com">email</a><br />
+<a href=https://twitter.com/RyanKeisler target='_blank'>@RyanKeisler</a>
+
+</p>
+</body>
