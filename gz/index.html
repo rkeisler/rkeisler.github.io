@@ -1,0 +1,58 @@
+<style type="text/css">
+  @import url("my.css");
+</style>
+
+<!-- <link rel="stylesheet"
+      href="http://yui.yahooapis.com/pure/0.3.0/base-min.css"> -->
+
+<body>
+<h1>Galaxies + Convolutional Neural Networks</h1>
+
+<p>
+In early 2014 there was <a href=http://www.kaggle.com/c/galaxy-zoo-the-galaxy-challenge target='_blank'>Kaggle competition</a> to classify galaxy morphologies based on images from the <a href=http://www.sdss.org/ target='_blanck'>Sloan Digital Sky Survey</a>.  
+</p>
+
+<p>
+I constructed a GPU-trained, convolutional neural network for this analysis.  The same basic technology is used in a number of commercial image and audio processing applications, such as Google's system for extracting addresses from their StreetView imagery.</p>
+
+<p>I ended up coming in 7th place.  The winner, who also used a convolutional neural network, has a great <a href=http://benanne.github.io/2014/04/05/galaxy-zoo.html> write-up</a>.  I used Alex Krizhevsky's <a href=https://code.google.com/p/cuda-convnet/ target='_blanck'>cuda-convnet code</a>, but have repeated some of this work using the <a href=caffe.berkeleyvision.org>Caffe</a> library.  See my Caffe code <a href=https://github.com/rkeisler/convnet-galaxies>here.</a></p>
+
+
+I gave a <a href=https://speakerdeck.com/rkeisler/convnets-plus-galaxies> short talk </a> on this work at the "Computing the Universe 2015" conference at UC Berkeley.
+</p>
+
+
+<p>
+In each row below I show the galaxies from the unlabeled validation set that maximize the response of a particular neuron located at the end of the network.  You can see that a variety of complex morphological features were learned by the network.
+</p>
+
+<!-- <img src='view_topN.png' width="800pt"> -->
+<img src='last_layer.png' width="800pt">
+
+
+<p>I used a (3 convolutional layers + 2 locally-connected layers + 1 fully-connected layer) architecture, with dropout regularization in the LC and FC layers:</p>
+<img src='architecture.png' width="800pt">
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new
+  Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-46643325-1', 'stanford.edu');
+  ga('send', 'pageview');
+
+</script>
+
+<h1>"Smooth Galaxy" Video</h1>
+<p>Using the same dataset, I made a video of 1000 nearby spirals.  The idea was that consecutive frames would show very similar galaxies viewed from slightly different viewing angles, and that the video would slowly explore the "morphology space" of nearby, spiral galaxies.  The video switches between galaxy type more quickly than I'd like, but I still think it came out pretty well.</p>
+
+<iframe src="//player.vimeo.com/video/86254924" width="500" height="500" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <br /> More info:<br /><p>I made a video of 1000 nearby spiral galaxies imaged by the Sloan Digital Sky Survey (SDSS). The sequence of frames is determined using information about the galaxies&#039; morphologies and spatial similarity.<br /> <br /> Each one of these galaxies is about the size of our galaxy, the Milky Way, and contains about 100 billion stars. And this is only a tiny, tiny fraction of the galaxies out there. If we upgraded this movie to include the ~100 billion galaxies in the observable universe, <i><b>the playback time would be about 250 years.</b></i><br /> 
+ <br /> - I started with the galaxies in the <a href=http://www.kaggle.com/c/galaxy-zoo-the-galaxy-challenge target='_blank'>Galaxy Zoo competition on kaggle</a>.<br /> - I selected the top ~1000 &quot;most spiral-like&quot; from the ~60,000 galaxies in the training set.<br /> - I chose some galaxy as the first image. To choose the sequential images, I first found the 100-closest neighbors in the 37-dimensional &quot;Galaxy Zoo Morphology&quot; space, then selected the closest neighbor among those in &quot;variance-normalized-image&quot; space.<br /> - I used ffmpeg to convert the images to a movie.</p>
+
+<a href=http://stanford.edu/~rkeisler/>stanford.edu/~rkeisler</a><br>
+<a href="mailto:rkeisler@gmail.com">email</a><br />
+<a href=https://twitter.com/RyanKeisler target='_blank'>@RyanKeisler</a></p>
+</body>
